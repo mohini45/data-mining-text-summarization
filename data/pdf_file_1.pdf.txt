@@ -1,0 +1,521 @@
+Preliminary Wildﬁre Detection: A Dataset and
+Challenges
+
+Samarth Shah
+
+2021 Summer STEM Institute
+
+September 14, 2021
+
+Abstract
+
+Wildﬁres are uncontrolled ﬁres in the environment that can be caused
+by humans or nature. In 2020 alone, wildﬁres in California have burned
+4.2 million acres, damaged 10,500 buildings/structures, and killed more
+than 31 people, exacerbated by climate change and a rise in average global
+temperatures [1] [2]. This also means there has been an increase in the
+costs of extinguishing these treacherous wildﬁres. The objective of the
+research is to detect forest ﬁres in their earlier stages to prevent them
+from spreading, prevent them from causing damage to a variety of things,
+and most importantly, reduce or eliminate the chances of someone dying
+from a wildﬁre. A ﬁre detection system should be eﬃcient and accurate
+with respect to extinguishing wildﬁres in their earlier stages to prevent
+the spread of them along with their consequences. Computer Vision is
+potentially a more reliable, fast, and widespread method we need. The
+current research in the ﬁeld of preliminary ﬁre detection has several prob-
+lems related to unrepresentative data being used to train models and their
+existing varied amounts of label imbalance in the classes (commonly ﬁre
+and non-ﬁre) of their dataset. We propose a more representative and
+evenly distributed data through better settings, lighting, atmospheres,
+etc., and class distribution in the entire dataset. After thoroughly exam-
+ining the results of this research, it can be inferred that they supported
+the dataset’s strengths by being a viable resource when tested in the real
+world on unfamiliar data. This is evident since as the model trains on
+the dataset, it is able to generalize on it, hence conﬁrming this is a viable
+Machine Learning setting that has practical impact.
+
+1
+2
+0
+2
+
+p
+e
+S
+0
+1
+
+]
+
+V
+C
+.
+s
+c
+[
+
+1
+v
+3
+8
+0
+5
+0
+.
+9
+0
+1
+2
+:
+v
+i
+X
+r
+a
+
+1
+
+ 
+ 
+ 
+ 
+ 
+ 
+1
+
+Introduction
+
+Wildﬁres are uncontrolled ﬁres in the environment that can be caused by
+humans or nature. These ﬁres are dangerous to both humans and nature as they
+have the potential to destroy a copious amount of property and also damage the
+ecosystem. In 2020 alone, wildﬁres in California have burned 4.2 million acres,
+damaged 10,500 buildings/structures, and killed more than 31 people [1]. The
+solution must allow for endangering wildﬁres to be found before they can spread
+which can save hundreds of thousands of dollars typically spent on extinguish-
+ing ﬁres, repairing damaged property, and most importantly, it can save lives.
+Although there are many applications of Machine Learning in the ﬁeld of early
+wildﬁre detection, many are too costly to implement and/or not feasible to work
+with. Computer Vision is a necessary tool as part of a larger wildﬁre solution.
+
+Figure 1: Left: An Image Captured Using A Satellite-based Solution [3]. This
+solution is more costly and does not detect wildﬁres in their earlier stages.
+Middle: An Image Captured Using An Aerial-based Solution [4]. This solution
+is too costly and not very feasible due to operating expenses and short ﬂight
+time. Right: An Image Captured Using A Terrestrial-based Solution [5]. This
+solution is relatively more practical since it is cheaper and more feasible, and
+can cover large areas of land.
+
+Computer Vision allows for a more eﬃcient and cheap solution to a multitude of
+applications as it can repetitively carry out tasks at a constant faster pace with
+less human error [6]. They are able to automate tasks that wouldn’t be feasible
+for humans to complete at a constant pace on a regular basis. ALERTWildﬁre
+is a large scale PTZ camera network used to monitor landscapes. Currently, the
+organization has given humans the responsibility of catching wildﬁres during
+their preliminary stages. Computer Vision can allow for an improved solution
+to wildﬁres by automating the human-dependent process being carried out to-
+day. This Computer Vision solution can be easily expanded and adopted by
+others. With ALERTWildﬁre’s large-scale camera network, I plan to use their
+camera data as they are able to look at all of the land on the western part of
+The United States that have a risk of sustaining wildﬁres. ALERTWildﬁre is
+an organization that partners with several other groups stationed in the west-
+ern part of The United States. By doing so, they’re able to provide such a
+network of cameras in which each partner holds a stake.
+In the future, this
+camera network will be expanded globally to places all over the world that are
+susceptible to contain wildﬁres. These terrestrial-based solutions make way for
+an Image Recognition algorithm that can constantly scan for ﬁres in multiple
+locations that are likely to contain wildﬁres with wide-angle pan-tilt-zoom cam-
+
+2
+
+Figure 2: Left: Landscape Without Fire, Right: Landscape With Fire. Both im-
+ages originate from a wide-angle pan-tilt-zoom camera view provided by ALER-
+TWildﬁre. Fires usually happen in the day, and smoke is the biggest visual char-
+acteristic for detection. Evident through comparing each image to the other,
+the image on the left does not have a ﬁre despite their being smoke in the air
+above the landscape since it is not sprouting from the land. In contrast, the
+image on the right does have a ﬁre since there is smoke coming from the land.
+Although there are clouds in the background that could be classiﬁed as smoke,
+they are not considered as smoke caused by a wildﬁre as they are not coming
+from the ground.
+
+eras [5]. On this topic, there are a few other research papers that are based on
+the same theme of using Machine Learning and Computer Vision technology to
+detect ﬁres on their earlier stages to mitigate the damage they produce [7] [8].
+However, these papers have several issues and limitations regarding practicality
+due to their failure to consider the Machine Learning obstacles. This is a very
+common issue found in these papers simply because their respective authors
+tend to ignore the implications of the form of the dataset they present to their
+models. Although the accuracies presented by these papers may seem enticing
+at ﬁrst glance, they are not valid representations of how well their models would
+perform when given real-world data from common cameras used for early wild-
+ﬁre detection, such as the ones provided by ALERTWildﬁre. For instance, one
+common issue that circulates through the research in this ﬁeld is the issue of
+Model Robustness–the model’s ability to identify the important features that
+distinguish one class from another in the case of image recognition. This is
+due to the several papers in the same ﬁeld that have models unable to pick up
+on distinguishing factors to accurately determine whether or not a given image
+contains a wildﬁre. Therefore, this would result in a not very robust model as
+the data used for training is dissimilar to what is seen when the model tests on
+real-world data. Consequently, this problem can lead to an issue with Calibra-
+tion–the model’s conﬁdence or the probability that its predictions are reliable.
+If the model is not very robust, it could negatively aﬀect its Calibration as it
+would decrease the probability that its predictions are reliable when applied to a
+real-world scenario. The research being carried out will also focus on mitigating
+these prevalent issues by using more representative and evenly distributed data
+in terms of the image’s setting, lighting, atmosphere, etc., and class distribu-
+tion in the entire dataset. The data was also masked on the parts that were
+not correlated with the determination of whether or not there exists a ﬁre in a
+given image. The data was split such that 75% of it was allocated for training
+purposes and 25% of it was allocated for purposes testing the accuracy. There
+
+3
+
+were 4000 images in which 2000 of them were images of ﬁres and 2000 of them
+were images of landscapes. By doing these things, I will resolve or mitigate the
+issues evident in neighboring research papers. For instance, keeping the dataset
+with a more representative setting, lighting, atmosphere, etc. will allow me to
+train the model on what it will be expected to input which will increase the
+validity of the accuracy. By masking parts of the images in the dataset, I will
+also lessen the bias present in the images to also increase the validity of the
+accuracy. Through carrying out the experimentation phase of this research and
+closely observing the results, one can note the dataset’s attempt to mitigate the
+bias found in neighboring papers through its distinguishing features mentioned
+above. A Convolutional Neural Network was able to train on this dataset, lessen
+its loss, and increase its accuracy.
+
+2 Literature Review
+
+I have determined some of the practical problems faced by researchers across
+the board regarding preliminary wildﬁre detection by looking through several
+pieces of literature relating to real-world applications using Artiﬁcial Intelligence
+and collecting data that will be used to train the model. I also noted common
+techniques used in the algorithms and general, recurring problems that show up
+with the image recognition implemented for early wildﬁre detection. Apart from
+Computer Vision, there are other solutions referred to by some in the ﬁeld of
+preliminary wildﬁre detection. One of the most commonly-referred alternatives
+to using Image Recognition is to implement terrestrial-based sensors that are
+stationed at spots likely to contain wildﬁres [9]. Some also look at aerial-based
+solutions using systems such as drone networks [9]. The issue with both of these
+approaches is that they are too costly and not eﬃcient enough to be deployed
+on a large scale, which is necessary when there is not one designated location
+and designated period of time where and when wildﬁres ignite. I have included
+illustrations and diagrams of some of the more prevalent problems that occur
+in Computer Vision research.
+
+Model Robustness refers to the model’s ability to identify the important
+features that distinguish one class from another in the case of image recognition.
+Oftentimes, data used by researchers would contain images of ﬁres that were
+very similar to each other and would often be located on the same spot of the
+image, would have the same hue of the ﬂame, etc. For instance, if an algorithm
+was trained on images that were pointed at the same location/landscape with
+the same features, it could have only learned how to detect wildﬁres in that
+particular setting and for that reason would not be a very robust model as it
+would not be using the features that distinguish an image from having a wildﬁre
+as opposed to not having one. Not having a robust model in the ﬁeld of wildﬁre
+detection would decrease the representativeness of the displayed accuracy of the
+model if it refers to its accuracy as its ability to detect wildﬁres in general [10].
+In turn, this would result in a decrease in validity of the accuracy showcased by
+several of the research papers–in the ﬁeld of preliminary wildﬁre detection–that
+have datasets ﬁlled with skewed images that had several other indicators of ﬁres
+such as the orientation of the image, the setting of the image, etc. [11]
+
+Calibration refers to the model’s conﬁdence or the probability that its
+predictions are reliable. Calibration is especially important in the ﬁeld of early
+
+4
+
+Figure 3: Left: Detected Wildﬁre, Has Wildﬁre. Right: Detected Wildﬁre,
+No Wildﬁre. An Illustration of The Model Robustness Problem – The Model’s
+Tendency To Perform Poorly From “Subtle Diﬀerences” In The Input Image.
+Although the left image is a correct prediction as there is a wildﬁre in the image,
+the right image is an incorrect prediction as there is no wildﬁre in that image.
+This is due to an issue with the Model Robustness since a subtle change in the
+image resulted in a false prediction. The gray areas of the smoke, which are
+often used to determine the existence of a wildﬁre, look relatively similar and
+thus have not changed much between the two images.
+
+wildﬁre detection as any individual in the ﬁeld would want to ensure that they
+catch all the wildﬁres that occur without missing any, but at the same time, not
+wanting to overtrain the model to the point where it would detect false positives
+[12].
+
+Generalization refers to the ability of a trained model to perform predic-
+tions on unseen/unfamiliar data. As touched on earlier regarding the model’s
+robustness, researchers would often ﬁnd their models not performing at the ac-
+curacy listed when running on unfamiliar data proving their models haven’t
+completely generalized on all wildﬁres [7]. This relates to the robustness of the
+model as discussed earlier since a model that is less robust tends to not be
+as generalizable. This means generalization and model robustness has a direct
+relationship. Relating the previously brought up skewed image with the topic
+of generalization, if the model trains on images that have odd orientations, un-
+representative settings, and other sources of dataset bias, it will not generalize
+its weights on realistic data that it will input when applied to cameras in an
+outdoor setting where practically all wildﬁres occur [11]. Moreover, as a model
+continues to train on familiar data, it increases its conﬁdence in it and this will
+result in increased poor performance on unfamiliar data. This phenomenon is
+typically referred to as a Domain Shift [13].
+
+Label Imbalance refers to the problem faced by a model regarding pre-
+dictions due to the number of examples for each class in the training set being
+unbalanced. In the realm of wildﬁre detection and mitigation, Label Imbalance
+must be taken into account as there is always more data with images of with-
+out wildﬁres than there are with wildﬁres. Label Imbalance is diﬃcult because
+models will tend to output majority class predictions and will lean in opposi-
+tion to the minority class. One way to mitigate the unwanted eﬀects of Label
+Imbalance is by implementing a Class Rectiﬁcation Loss Function to automat-
+ically allow for the model to correct for the “dominant eﬀect” of the majority
+classes through observing minority classes and their sampled boundaries [14].
+Through reviewing the literature in the same ﬁeld of early wildﬁre detection,
+
+5
+
+Figure 4: A Visualization of The Domain Shift Problem [13]. Evident from the
+diagram pictured, there is a decrease in performance on real data in comparison
+to the model’s performance on synthetic data. This can be attributed to the
+Domain Shift phenomenon.
+
+Label Imbalance is evident in several papers through datasets having relatively
+more data in the class with wildﬁres. Due to this, their models tend to be biased
+towards detecting wildﬁres more easily as they are ﬁne-tuned on more examples
+of wildﬁres than images without wildﬁres [7].
+
+Figure 5: An Illustration of A Label Imbalance and The Involvement of Class
+Rectiﬁcation Loss [14]. Having more data in one class would introduce a bias
+in the model’s judgement of data towards the majority class.
+
+3 Research Questions
+
+1. How is the dataset collected and why is it comprehensive and inclusive of
+
+wildﬁre situations?
+
+2. Why is the dataset able to mitigate common computer vision problems
+such as diﬀerent atmospheres, model robustness, etc. and what makes
+it well-suited for improving not only the model’s accuracy, but also its
+validity?
+
+3. What makes this dataset diﬃcult?
+
+6
+
+4 Methodology
+
+The dataset was consists of 2000 images of wildﬁres on landscapes suscep-
+tible to containing wildﬁres and 2000 images of landscapes that are susceptible
+to containing wildﬁres but don’t contain any wildﬁres at the instance they were
+taken. The images of wildﬁres were collected through website scraping meth-
+ods using PyTube, a Python module that can scrape videos from a YouTube
+channel and convert them to MP4 ﬁles, by using ALERTWildﬁre’s YouTube
+channel which contains hundreds of videos of ﬁres that occurred on landscapes
+susceptible to containing wildﬁres [15] [16]. Once the videos were scraped and
+converted into MP4 ﬁles, OpenCV, a Python module that has a plethora of
+methods that deal with images, was used to capture frame from the video every
+10 seconds [17]. By doing this, the dataset is ultimately able to incorporate
+more variety in the images of wildﬁres as it contains various angles of them
+while also maintaining frames that contained wildﬁres that are representative
+of what a real-world input for the model would look like. The images of land-
+scapes without wildﬁres were collected through website scraping methods using
+Beautiful Soup and PyAutoGUI, two python libraries that are able to automate
+website functions such as searching on the website and selecting buttons and
+attributes on the website page. ALERTWildﬁre’s website page was scraped
+using these modules by saving each image into the appropriate section of the
+dataset by having Beautiful Soup direct the algorithm to the right website page
+representing each of the cameras provided by the organization [18]. PyAutoGUI
+was used to automatically operate the functions on the site to save each of the
+captured images from the cameras [19]. By doing this, the dataset is also able
+to incorporate a larger range of data regarding images of landscapes susceptible
+to containing wildﬁres. All in all, what makes this dataset so comprehensive
+and inclusive of wildﬁre situations is that it uses images of landscapes that have
+wildﬁres or are susceptible to containing wildﬁres. Therefore, when applied to
+a real-case scenario on unfamiliar data, a model trained on this dataset can
+be more robust and will hence be able to generalize on more applicable data.
+As mentioned earlier, this dataset has been collected through images that are
+very representative of what the algorithm would capture as an input in the real
+world. In addition to this, the images were also masked on certain parts that
+would cause bias and did not correlate with a higher or lower chance of there
+being a wildﬁre in those images. Both of these things deﬁnitely help mitigate
+the bias and unrepresentativeness present in datasets that are typically show-
+cased in neighboring research papers in the same ﬁeld of preliminary wildﬁre
+detection. These neighboring research papers, as mentioned in other segments
+of this paper, have issues regarding Model Robustness and Generalization which
+often occur from the datasets presented in them that often have a bias due to
+the unrepresentative setting, atmosphere, lighting, etc. The dataset formed
+from this research mitigates and in some cases solves problems such as the ones
+listed above as the masks eliminate the possibility of non-wildﬁre-related factors
+interfering with the model’s weights during training.
+
+7
+
+Figure 6: The Convolutional Neural Network Structure.
+
+5 Results and Discussion
+
+A Convolutional Neural Network was trained on the dataset. Convolutional
+Neural Networks are a type of Artiﬁcial Neural Network that specializes in Image
+Recognition through processing the pixels of an image [20]. This is true due to
+its ability to identify key features that distinguish one class from another–in
+this case, images containing wildﬁres from those without them–by reducing the
+number of parameters for each consecutive layer. As stated by Sumit Saha, “The
+role of the ConvNet [Convolutional Neural Network] is to reduce the images into
+a form which is easier to process, without losing features which are critical for
+getting a good prediction” [21]. Input images in Convolutional Networks used
+for Image Classiﬁcation are passed through a ﬁlter which performs computations
+to condense the image’s pixels and eventually foil down to a single output,
+which should accurately represent the input image’s class. The Convolutional
+Neural Network used for this research was set to distinguish between images
+with wildﬁres and those without them. It was designed to take images of 128
+by 128 pixels, meaning there were a total of 16384 pixels to start oﬀ with. The
+Convolutional Neural Network was trained on an initial learning rate of 1e-2, a
+batch size of 64, 15 epochs, and ended up having an accuracy of 86%. Below
+is a graph of the training loss, validation loss, training accuracy, and validation
+accuracy.
+
+In comparison to other research performed in the ﬁeld of preliminary wildﬁre
+detection, the accuracy of this Convolutional Neural Network is a little lower.
+However, as mentioned earlier, other research performed in this ﬁeld tends to
+have a heavy load of bias in their datasets and use other factors that decrease
+the validity of the accuracy. These neighboring research papers, as mentioned
+in other segments of this paper, have issues regarding model robustness and
+generalization which often occur from the datasets presented in them that often
+have a bias due to the unrepresentative setting, atmosphere, lighting, etc. The
+dataset formed from this research mitigates and in some cases solves problems
+such as the ones listed above as the masks eliminate the possibility of non-
+wildﬁre-related factors interfering with the model’s weights during training. One
+major limitation comes in the form of a lack of data for the dataset. Although
+
+8
+
+Figure 7: Training loss and validation loss drop towards 0 while training ac-
+curacy and validation accuracy trend upwards toward 1, demonstrating the
+model’s eﬀectiveness through training and its ability to minimize loss and max-
+imize accuracy.
+
+there was a total of 4000 images in the dataset (2000 images of wildﬁres and
+2000 images of landscapes susceptible to containing wildﬁres, but not containing
+them), more images in each of the classes would have helped further increase
+the accuracy of the model since the features that were associated with wildﬁres
+were not very evident in the images and henceforth adding more data would
+have helped improve the robustness of the model. Despite this, the model
+still showcased an increase in accuracy and minimizing of loss as it progressed
+through the training procedure, which one can note as an initial progression of
+the Convolutional Neural Network adapting to and learning the features that
+determine whether or not an image contains a wildﬁre. Therefore, in the future,
+I can contact ALERTWildﬁre and work with the faculty on collecting more
+data, as that is very crucial towards the growth of this research.
+
+6 Conclusion
+
+The research for this study emphasizes the need for a more representative and
+less biased dataset for the purposes of preliminary wildﬁre detection using Con-
+volutional Neural Networks that take in data in the form of image data. After
+performing background research, it became clear that there was an abundance
+of biased and skewed datasets in this ﬁeld. Problems related to Label Imbalance
+and Unrepresentativeness were a common when reading through past research.
+However, these were often unmentioned in these studies, leading to an inac-
+curate accuracy and validity showcased. Several papers would often use data
+where the images of ﬁres, one of the two classes for most models, would feature
+orientations and settings that were extremely diﬀerent from what an outdoor
+camera would actually view in the real world. Therefore, this would result in
+
+9
+
+a not very robust model as the data used for training is dissimilar to what is
+actually seen. Through carrying out the experimentation phase of this study,
+bias was mitigated from the dataset through inputting more representative im-
+ages, masking parts of the image that would not declare the diﬀerence between
+a wildﬁre existing or not existing, and inputting an equal number of images with
+wildﬁres and images without them to ensure Label Imbalance was mitigated.
+Although there was a total of 4000 images in the dataset (2000 images of wild-
+ﬁres and 2000 images of landscapes susceptible to containing wildﬁres, but not
+containing them), more images in each of the classes would have helped further
+increase the accuracy of the model since the features that were associated with
+wildﬁres were not very evident in the images and henceforth adding more data
+would have helped improve the robustness of the model. Despite this, the model
+still showcased an increase in accuracy and minimizing of loss as it progressed
+through the training procedure, which one can note as an initial progression of
+the Convolutional Neural Network adapting to and learning the features that
+determine whether or not an image contains a wildﬁre.
+
+10
+
+References
+
+[1] “Facts statistics: Wildﬁres,” Insurance Information Institute.
+
+[2] Cragcrest, “Why california’s wildﬁres are so destructive, in 5 charts,” Nov
+
+2018.
+
+[3] N. S. D. of the Earth Lab Analytics Hub, “Bringing tech innovation to
+wildﬁres: 4 recommendations for smarter ﬁreﬁghting as megaﬁres menace
+the us,” Jul 2021.
+
+[4] P. b. S. Elliott, D. Voican, and A. Singh, “Drones provide eye-in-the-sky
+
+to help ﬁght ﬁres,” Jul 2021.
+
+[5] A. Faculty, “About alertwildﬁre,” ALERTWildﬁre.
+
+[6] Simplilearn, “What is computer vision: Applications, beneﬁts and how to
+
+learn it,” Simplilearn.com, Apr 2021.
+
+[7] J. Sharma, O. Granmo, M. Goodwin, and J. T. Fidje, “Deep convolu-
+tional neural networks for ﬁre detection in images,” in Engineering Appli-
+cations of Neural Networks - 18th International Conference, EANN 2017,
+Athens, Greece, August 25-27, 2017, Proceedings (G. Boracchi, L. S. Iliadis,
+C. Jayne, and A. Likas, eds.), vol. 744 of Communications in Computer and
+Information Science, pp. 183–193, Springer, 2017.
+
+[8] Y. Luo, L. Zhao, P. Liu, and D. Huang, “Fire smoke detection algorithm
+based on motion characteristic and convolutional neural networks,” Multim.
+Tools Appl., vol. 77, no. 12, pp. 15075–15092, 2018.
+
+[9] P. Barmpoutis, P. Papaioannou, K. Dimitropoulos, and N. Grammalidis,
+“A review on early forest ﬁre detection systems using optical remote sens-
+ing,” Sensors, vol. 20, no. 22, p. 6442, 2020.
+
+[10] K. Govil, M. L. Welch, J. T. Ball, and C. R. Pennypacker, “Preliminary re-
+sults from a wildﬁre detection system using deep learning on remote camera
+images,” Remote. Sens., vol. 12, no. 1, p. 166, 2020.
+
+[11] R. Beneduce, R. Hill, and C. Schelle, “Alertwildﬁre (group 6),”
+
+[12] P. Jain, S. C. P. Coogan, S. G. Subramanian, M. Crowley, S. Taylor, and
+M. D. Flannigan, “A review of machine learning applications in wildﬁre
+science and management,” CoRR, vol. abs/2003.00646, 2020.
+
+[13] S. Sankaranarayanan, Y. Balaji, A. Jain, S. Lim, and R. Chellappa, “Learn-
+ing from synthetic data: Addressing domain shift for semantic segmenta-
+tion,” in 2018 IEEE Conference on Computer Vision and Pattern Recogni-
+tion, CVPR 2018, Salt Lake City, UT, USA, June 18-22, 2018, pp. 3752–
+3761, IEEE Computer Society, 2018.
+
+[14] Q. Dong, S. Gong, and X. Zhu, “Imbalanced deep learning by minority
+class incremental rectiﬁcation,” IEEE Trans. Pattern Anal. Mach. Intell.,
+vol. 41, no. 6, pp. 1367–1381, 2019.
+
+[15] “nvseismolab,” YouTube.
+
+11
+
+[16] “pytube.”
+
+[17] “Opencv modules.”
+
+[18] “Beautiful soup documentation.”
+
+[19] “Pyautogui’s documentation.”
+
+[20] T. Contributor, “What is convolutional neural network? - deﬁnition from
+
+whatis.com,” Apr 2018.
+
+[21] S. Saha, “A comprehensive guide to convolutional neural networks–the eli5
+
+way,” Dec 2018.
+
+12
+
+

@@ -1,0 +1,1125 @@
+Sensor-Based Satellite IoT for Early Wildﬁre
+Detection
+
+How-Hang Liu1, Ronald Y. Chang1, Yi-Ying Chen2, and I-Kang Fu3
+1Research Center for Information Technology Innovation, Academia Sinica, Taiwan
+2Research Center for Environmental Changes, Academia Sinica, Taiwan
+3MediaTek Inc.
+Email: {liuhowhang, rchang}@citi.sinica.edu.tw, yiyingchen@gate.sinica.edu.tw, ik.fu@mediatek.com
+
+1
+2
+0
+2
+
+p
+e
+S
+2
+2
+
+]
+P
+S
+.
+s
+s
+e
+e
+[
+
+1
+v
+5
+0
+5
+0
+1
+.
+9
+0
+1
+2
+:
+v
+i
+X
+r
+a
+
+Abstract—Frequent and severe wildﬁres have been observed
+lately on a global scale. Wildﬁres not only threaten lives and
+properties, but also pose negative environmental impacts that
+transcend national boundaries (e.g., greenhouse gas emission
+and global warming). Thus, early wildﬁre detection with timely
+feedback is much needed. We propose to use the emerging beyond
+ﬁfth-generation (B5G) and sixth-generation (6G) satellite Internet
+of Things (IoT) communication technology to enable massive
+sensor deployment for wildﬁre detection. We propose wildﬁre and
+carbon emission models that take into account real environmental
+data including wind speed, soil wetness, and biomass, to simulate
+the ﬁre spreading process and quantify the ﬁre burning areas,
+carbon emissions, and economical beneﬁts of the proposed system
+against the backdrop of recent California wildﬁres. We also
+conduct a satellite IoT feasibility check by analyzing the satellite
+link budget. Future research directions to further illustrate the
+promise of the proposed system are discussed.
+
+I. INTRODUCTION
+
+Global warming is a pressing global issue and a result of
+excessive green house gas (GHG) emission. A major element
+of GHG is carbon dioxide. There are many contributing
+factors to carbon emissions, including wildﬁres. Global carbon
+emissions from ﬁres for the recent years are 2.0 GtC yr−1
+which is 40% of the atmospheric carbon dioxide growth rate
+[1]. Frequent and intense ﬁre activities could switch forests
+from carbon stocks to sources, especially during drought times,
+and such extreme cases contribute to signiﬁcant carbon emis-
+sion. A timely wildﬁre detection system can reduce carbon
+emissions and negative environmental impacts, as well as save
+lives and properties, by shifting the ﬁre regime to a short and
+small one through reducing the spread of ﬁres.
+
+Satellite-based monitoring has been used in detecting wild-
+ﬁres. However, the long scan period and low resolution of
+satellites limited the performance of the system [2]. Moreover,
+the two-dimensional image data from satellite-sensor remote
+sensing cannot present the landscape-level ecological infor-
+mation such as biomass, soil wetness, and wind speed, which
+results in inaccurate detection [3]. These challenges inspired
+the employment of sensor-based systems [4]. Although the
+sensor-based systems could report more timely and precise in-
+formation, there remain issues to address, such as deployment
+
+This work was supported in part by the Ministry of Science and Technology,
+
+Taiwan, under Grant MOST 109-2221-E-001-013-MY3.
+
+robustness, sensor power management, and communication
+reliability and security [5].
+
+Various types of sensor-based systems such as observation
+by watchtowers and unmanned aerial vehicles (UAVs) [6]–[8]
+all face some of these issues. The installation and mainte-
+nance of watchtowers are costly [6], [7]. Some conventional
+watchtowers required human operation which added to the
+total cost of watchtowers. Therefore, Ko et al. [6] designed a
+computer vision system to replace human presence in watch-
+towers. Flexibility is another issue because adding or removing
+watchtowers will create redundancy or insufﬁciency in the
+observation coverage. Zhang et al. [7] proposed algorithms
+to optimize the locations of watchtower deployment.
+
+Using UAVs for disaster management faces two major
+challenges in regard to power management and security [8].
+First, UAVs are battery-powered and the recharge time could
+create a lapse in communicating essential data. Second, the
+observed data by UAVs might contain sensitive or private
+information, and therefore the use of UAVs is typically subject
+to government regulations regarding their sizes, ranges, and
+maximum ﬂight heights.
+
+There is a potential to leverage the advances of wireless
+communication and Internet of Things (IoT) technologies
+for geo-hazards prevention [9]. To achieve timely wildﬁre
+detection and overcome the aforementioned limitations of
+watchtowers and UAVs, we propose to use the emerging
+beyond ﬁfth-generation (B5G) and sixth-generation (6G) satel-
+lite IoT communication technology to enable massive sensor
+deployment in remote areas. Satellite communication has the
+advantage of covering an expansive area but is traditionally a
+closed-loop small ecosystem that requires dedicated, expensive
+satellite communication equipment (e.g., satellite phones), and
+is not available for large-scale commercial use. We propose to
+use the same radio interface and the same terrestrial radio
+communication technologies (i.e., B5G or 6G) with low-cost,
+consumer-grade wireless equipment for satellite IoT commu-
+nication, which was shown feasible in [10], for early wildﬁre
+detection. The main contributions of this paper include:
+
+• We develop a mathematical model and perform the fea-
+sibility analysis of sensor-based satellite IoT for wildﬁre
+monitoring and detection. We propose a wildﬁre evolution
+
+ 
+ 
+ 
+ 
+ 
+ 
+(a)
+
+(b)
+
+Fig. 2.
+
+(a) Elliptical ﬁre model. (b) Fire evolution model.
+
+axis direction of the ellipse. The ﬁre spreading speed up (m/s)
+can be represented as
+
+up = umax × g(Ws) × h(βroot)
+
+(1)
+
+where umax is a constant representing the maximum ﬁre
+spreading speed which is 0.13 m/s (0.45 km/h), and g(Ws)
+and h(βroot) are functions representing the dependence of up
+on the wind speed (Ws) and root zone soil wetness (βroot).
+The outputs of these two functions have values between 0 and
+1. g(Ws) is computed by
+
+g(Ws) = 1 − (1 − g0) exp
+
+−
+
+(cid:18)
+
+W 2
+s
+2500
+
+(cid:19)
+
+(2)
+
+where g0 = 0.1 is a constant that controls the growth rate
+when there is no wind. h(βroot) is described as
+
+h(βroot) = (1 − βm)2, βm =
+
+βroot
+βe ,
+1,
+
+(
+
+for βroot ≤ βe
+for βroot > βe
+
+(3)
+
+where βe = 0.35 is a threshold. When the soil wetness is above
+this threshold, h(βroot) = 0, which leads to up = 0. The v
+speed can be calculated from the ellipse length-to-breadth ratio
+LB = (up + ub)/2v. LB is related to Ws and is represented
+as
+
+LB = 1 + 10
+
+1 − exp(−0.017Ws)
+
+.
+
+(4)
+
+Since up, ub, and v are speeds, they will be multiplied by a
+time parameter to represent the distances of major and minor
+axes of the ellipse.
+
+(cid:0)
+
+(cid:1)
+
+Fig. 1. The proposed satellite-enabled IoT sensors for wildﬁre detection.
+
+model that takes into account wind speed and soil wet-
+ness. We propose a carbon emission model. We perform
+a satellite IoT feasibility check by calculating the satellite
+system capacity.
+
+• We use real environmental data such as wind, soil wet-
+ness, and biomass information to conduct simulations
+using California as a case study. We demonstrate the
+effect of sensor density on the ﬁre burning time and the
+resulting carbon emissions and monetary costs. Beneﬁts
+and implications of the proposed method are discussed.
+
+II. THE PROPOSED SYSTEM
+
+Fig. 1 illustrates the proposed system. A massive number
+of geographically distributed sensors are deployed in remote
+areas (e.g., forests) for ﬁre detection. The sensors are under
+the geostationary earth orbit (GEO) satellite beam coverage.
+Upon detecting a ﬁre event, the sensors send alarm signals to
+the GEO satellite en route to the ﬁre monitoring center for
+intervention and ﬁre extinguishing measures.
+
+We propose mathematical models to quantitatively evaluate
+the proposed system. In what follows, we ﬁrst model the wild-
+ﬁre evolution. Then, we model the carbon emission according
+to the burned area and the biomass within the area. Finally,
+we calculate the satellite communication link budget to verify
+the number of sensors that can be supported by the system.
+
+A. Wildﬁre Model
+
+We extend the elliptical wildﬁre model with a single ignition
+point and a constant wind magnitude and direction [11], to
+wildﬁre evolution that involves multiple ignition points and
+varying wind magnitudes and directions as time evolves. These
+are described as follows.
+
+1) Elliptical Fire Model: The spread of ﬁre from a single
+ignition point under constant wind condition can be modeled
+as an ellipse, as depicted in Fig. 2(a). Ws is the wind speed;
+up is the ﬁre spreading speed in the same direction of the wind
+(i.e., in the major axis direction of the ellipse); ub is the ﬁre
+spreading speed in the opposite direction of the wind, where
+ub = 0.2up; and v is the ﬁre spreading speed in the minor
+
+2) Fire Evolution Model: We model the ﬁre development
+with changing winds as time evolves based on the elliptical
+ﬁre model. Fig. 2(b) describes the proposed ﬁre evolution
+model. At time t = 0, there is a single ignition point and
+a single ellipse with the wind direction depicted. As time
+evolves, theoretically, each point inside the elliptical area for
+t = 0 could be the next ignition point for t = 1. This entails
+inﬁnitely many points. For modeling tractability, we consider
+only the four points at the two ends of major and minor axes
+of each ellipse as the next ignition points, to approximate ﬁre
+spreading. In other words, each ellipse at time t will generate
+four ellipses at time t + 1. As shown in Fig. 2(b), the winds
+may change magnitudes and directions, resulting in different
+shapes and rotations of ellipses, as time evolves.
+
+We approximate the ﬁre burning area covered by the many
+ellipses by the area of a circle, since directly calculating the
+total area of possibly overlapping ellipses is intractable. The
+center of the circle for calculating the ﬁre burning area at time
+t is determined by the average coordinates of the next ignition
+points at time t, and the radius of the circle is determined by
+the longest distance from the center to any of the ignition
+points. For example, at time t = 2, there are four shaded
+ellipses and 16 next ignition points, as shown in Fig. 2(b). The
+center of the circle is the average coordinates of the 16 ignition
+points, and the radius of the circle is the longest distance from
+the center to any of the 16 ignition points. The area of the
+circle, depicted by the blue dashed circle in Fig. 2(b), will be
+used to approximate the ﬁre burning area at t = 2. While this
+may appear to be an overestimate of area, it is a reasonable
+approximation considering the fact that in reality there are
+many ellipses (instead of four) initiated from many ignition
+points, as mentioned previously. Note that while at t = 1 we
+can calculate the ﬁre burning area exactly (since there is only
+one ellipse), we still adopt the same approximation method
+for consistency.
+
+B. Carbon Emission Model
+
+Given the burned area, and the biomass within the area,
+the corresponding carbon emission can be derived. Since
+the biomass varies from place to place, we use the average
+biomass to calculate the amount of carbon emissions. It
+is known that the underground biomass is 20% of above-
+ground biomass [12], and both underground and above-ground
+the total
+biomass will contribute to carbon emission. Let
+burned area be A (km2) and the average (above-ground)
+biomass be Bavg (Mg/ha), where Mg/ha denotes megagram
+(or ton) per hectare (or 104 m2). Then, the carbon emission
+in the unit of ton is given by
+
+A × 1.2Bavg × 100
+
+(5)
+
+Fig. 3. Calculation of the average biomass for the carbon emission model.
+
+TABLE I
+GEO SATELLITE LINK BUDGET PARAMETERS
+
+Elevation angle (degrees)
+Transmission mode
+Subcarrier frequency (GHz)
+TX: EIRP (dBm)
+RX: G/T (dB/K)
+Bandwidth (kHz)
+PLFS (dB)
+PLA (dB)
+PLSM (dB)
+PLS (dB)
+PLP (dB)
+Distance (km)
+CNR (dB)
+
+10
+UL
+1.5
+23
+19
+3.75
+188.14
+0.16
+3
+2.2
+3
+40581
+8.3714
+
+90
+UL
+1.5
+23
+19
+3.75
+187.05
+0.16
+3
+2.2
+3
+35786
+9.4636
+
+burning area, as illustrated in Fig. 3. In our model, each small
+area has an area of one hectare with a biomass value.
+
+C. Satellite Link Budget Analysis
+
+Here, we conduct a feasibility check of GEO satellite
+communication supporting sensors on the earth based on the
+3GPP NB-IoT non-terrestrial network (NTN) solution [13].
+We assume that the sensors are uniformly distributed in the
+sensing area, and the sensing area is within the satellite
+beam coverage. The GEO satellite beam diameter is 1000
+km. Table I summarizes the GEO satellite communication
+parameters for two cases of elevation angle [13]. 10-degree
+elevation angle represents the worst case of link budget due
+to the largest distance between the satellite and the sensors,
+whereas 90-degree elevation angle represents the best case of
+link budget as the satellite is directly overhead. Other cases of
+link budget fall between these two cases.
+
+The received carrier-to-noise ratio (CNR) at the satellite for
+
+the uplink transmission can be calculated by [14]
+
+CNR (dB) = EIRP (dBW) + G/T (dB/K)
+
+− PLFS (dB) − PLA (dB) − PLSM (dB)
+− PLS (dB) − PLP (dB)
+− BW (dBHz) − k (dBW/K/Hz)
+
+(6)
+
+where 100 is a unit conversion factor.
+
+We calculate the average biomass by dividing the ﬁre
+burning area into several (say, N ) smaller homogeneous areas
+with biomass bn, n = 1, . . . , N , and averaging them to get the
+average biomass Bavg = (b1 + b2 + · · · + bN )/N for the ﬁre
+
+where all terms are speciﬁed in Table I except the last term
+which is the Boltzmann constant k = −228.6. The ﬁrst term
+of (6) is the effective isotropic radiated power (EIRP) equal to
+23 dBm. The second term of (6) is the antenna-gain-to-noise-
+temperature ratio (G/T) equal to 19 dB/K. The third term of
+
+(6) is the free space path loss (PLFS) equal to 188.14 dB when
+the elevation angle is 10 degrees, which is calculated from
+
+PLFS = 32.45 (dB) + 20 log10(d) + 20 log10(f )
+
+(7)
+
+where f = 1.5 GHz and d = 40581 km from Table I. The
+fourth term of (6) is the atmospheric path loss (PLA) due to
+gases and rain fades, taken to be 0.16 dB. The ﬁfth term of (6)
+is the shadow fading margin (PLSM) due to obstacles affecting
+the wave propagation, taken to be 3 dB. The sixth term of (6)
+is the scintillation loss (PLS) caused by the local variation
+of the ionospheric electron density, taken to be 2.2 dB. The
+seventh term of (6) is the polarization loss (PLP) caused by
+the polarization mismatch in antennas, taken to be 3 dB. The
+eighth term of (6) is the channel bandwidth (BW) which is
+3.75 kHz. Summing up these terms gives CNR = 8.3714
+dB for the worst case (10-degree elevation angle). This CNR
+value, according to the transport block size (TBS) table in the
+3GPP standard [15], allows the sensors to transmit 144 bits per
+resource unit for uplink single tone (subcarrier) transmission.
+A resource unit is 32 ms in time and 3.75 kHz in frequency.
+Since the total available system bandwidth is 180 kHz, the
+peak data rate (or throughput) is 144 × (180/3.75/32) bits/ms
+or 216 kbps for the worst case (10-degree elevation angle).
+
+We consider two typical cases of wildﬁre sensing based
+on the sensor trafﬁc model in [16]: periodic report and ﬁre-
+event-triggered report. For the ﬁrst case, the sensor report rate
+is twice per day and the sensing data size per connection
+is 50 bytes, which leads to 0.0093 bps under the assump-
+tion of uniform trafﬁc distribution. For the second case, the
+sensor report rate is once per minute with the same data
+size, which leads to 6.6667 bps. The supportable numbers
+of sensors operating in the ﬁrst and second cases can be
+calculated as 216 (kbps)/0.0093 (bps) = 2.32 × 107 and
+216 (kbps)/6.6667 (bps) = 3.24 × 104, respectively. Consid-
+ering deploying one sensor per acre, or about 247 sensors per
+km2, the supportable number of sensors for periodic report
+can cover most of the forest area in the U.S. [17]. On the
+other hand, since a ﬁre event will trigger only sensors nearby
+at a time as ﬁre propagates, a capacity to support 3.24 × 104
+sensors for simultaneous event-triggered report is sufﬁcient
+for practical use. Clearly, increasing the system bandwidth
+(which incurs additional operational cost) will increase the
+link budget and the supportable number of sensors for both
+cases of wildﬁre sensing.
+
+III. SIMULATION RESULTS
+
+A. Simulation Setup: California Wildﬁres
+
+We consider California wildﬁres with fundamental historical
+wildﬁre data as a case study for our proposed model. His-
+torically, California has the highest number of wildﬁres and
+burned areas among all states in the U.S. [18], motivating a
+meaningful case study. The latitude and longitude of California
+are 32◦ 32′ N to 42◦ N and 114◦ 8′ W to 124◦ 26′ W,
+respectively. Since 1◦ of latitude equals approximately 111 km,
+California spans about 1110 km vertically. Since the distance
+
+Fig. 4. Simulation area approximation of California.
+
+between longitudes varies depending on the latitude, California
+spans about 1012 km at 32◦ N latitude and 902 km at 42◦
+N latitude horizontally. For simplicity, we approximate the
+geographic area of California by a 1000 × 1100 km2 area,
+as illustrated in Fig. 4, with grid cells corresponding to the
+environmental data described next.
+
+p
+
+10 + v2
+u2
+
+Table II presents the environmental data of California in
+2020 from [19]. There are four variables. u10 is the 10-
+meter U-wind component and v10 is the 10-meter V-wind
+component. The wind speed Ws in our wildﬁre model can
+be calculated directly from Ws =
+10, and the wind
+direction, represented by the angle θ with the horizontal
+axis, can be calculated as θ = arctan(v10/u10). Swvl1 is
+volumetric soil water in the unit of %, given by the volume
+of water (m3) divided by the volume of soil (m3), which
+corresponds to βroot in (1). These three variables are each
+three-dimensional corresponding to longitude, latitude, and
+time. Speciﬁcally, the 1000×1100 km2 area depicted in Fig. 4
+is divided into 111 × 101 grid cells, and the time is in the unit
+of hours for the entire year of 2020, given by 366 (day) ×
+24 (hr/day) = 8784 (hr). The last variable is Biomass which
+is the amount of the above-ground live biomass in the unit
+of Mg/ha. The value of this variable is used to calculate the
+average biomass in our model in Sec. II-B to get the carbon
+emission. Biomass does not vary from time to time in our
+dataset but changes from location to location.
+
+We compare our simulation results with the historical wild-
+ﬁre data from the California Department of Forestry and Fire
+Protection (CAL FIRE) database [20]. The database records
+the incident created time, incident extinguished time, incident
+coordination, and incident burned area in acre for all 255
+California wildﬁres in the entire year of 2020. We set the
+ignition point and starting time of each ﬁre outbreak in
+our simulation according to these 255 wildﬁres for a fair
+annual comparison with the historical data. The sensors are
+randomly deployed (uniformly distributed) in the approximate
+geographic area of California.
+
+B. Results and Discussion
+
+1) Fire Burning Time/Area vs. the Number of Sensors: We
+ﬁrst examine the effect of the number of sensors on the ﬁre
+burning time and area. Fig. 5(a) shows the burned hours vs.
+the number of sensors result. For simplicity and to focus our
+discussion on the contribution of the number of sensors, we
+assume that the ﬁre is extinguished as soon as the ﬁre spread-
+
+TABLE II
+THE ENVIRONMENTAL DATA OF CALIFORNIA IN 2020
+
+Variables
+Name
+Dimensions
+Grid spacing
+Unit
+
+u10
+10-meter U-wind component
+111 × 101 × 8784
+10 (km)
+m/s
+
+v10
+10-meter V-wind component
+111 × 101 × 8784
+10 (km)
+m/s
+
+Swvl1
+Volumetric soil water layer 1
+111 × 101 × 8784
+10 (km)
+%
+
+Biomass
+Above-ground live biomass
+11645 × 10666 × 1
+100 (m)
+Mg/ha
+
+)
+r
+u
+o
+h
+(
+
+e
+m
+T
+
+i
+
+104
+
+103
+
+102
+
+CAL FIRE database
+Proposed method
+
+2
+
+4
+
+6
+
+8
+
+Number of Sensors
+
+10
+105
+
+(a)
+
+104
+
+)
+
+2
+m
+k
+(
+a
+e
+r
+A
+
+103
+
+102
+
+CAL FIRE database
+
+Proposed method
+
+2
+
+4
+
+6
+
+8
+
+Number of Sensors
+
+10
+105
+
+(b)
+
+)
+n
+o
+t
+(
+n
+o
+i
+s
+s
+i
+m
+E
+n
+o
+b
+r
+a
+C
+
+108
+
+107
+
+106
+
+CAL FIRE database
+Proposed method
+
+2
+
+4
+
+6
+
+8
+
+Number of Sensors
+
+10
+105
+
+(c)
+
+)
+
+D
+S
+U
+
+(
+
+e
+c
+i
+r
+P
+n
+o
+b
+r
+a
+C
+
+109
+
+108
+
+107
+
+CAL FIRE database
+Proposed method
+
+2
+
+4
+
+6
+
+8
+
+Number of Sensors
+
+10
+105
+
+(d)
+
+)
+
+D
+S
+U
+
+(
+s
+g
+n
+i
+v
+a
+S
+
+1.12
+
+1.1
+
+1.08
+
+1.06
+
+1.04
+
+1.02
+
+1
+
+109
+
+Per sensor cost = 10
+Per sensor cost = 20
+Per sensor cost = 50
+Per sensor cost = 100
+
+2
+
+4
+
+6
+
+8
+
+Number of Sensors
+
+10
+105
+
+(e)
+
+Fig. 5. Simulation results. (a) Fire burning time (hours). (b) Fire burning area (km2). (c) Carbon emission (ton). (d) Carbon price (USD). (e) Savings (USD),
+for sensor costs of 10, 20, 50, and 100 USD per sensor. The 2020 wildﬁre data from the CAL FIRE database are shown for comparison.
+
+ing reaches any of the sensors. As can be seen, deploying more
+sensors reduces the burned hours since the ﬁre could be more
+timely detected. The number of sensors ranges from 105 to
+106, where 106 sensors deployed in the 1000 × 1100 km2 area
+of California amounts to approximately one sensor per km2.
+The burned time when 105 and 106 sensors are deployed is
+594.21 hours and 178.77 hours, respectively. In comparison,
+the historical annual burned time, calculated by summing the
+burning time (the duration between incident created time and
+incident extinguished time) of all California wildﬁres in 2020
+in the CAL FIRE database, is 36716.25 hours.
+
+Fig. 5(b) shows the burned areas vs. the number of sensors
+result. The burned areas are 1420.11 km2 and 308.35 km2
+when 105 and 106 sensors are deployed, respectively. In
+comparison, the annual burned area derived from the CAL
+FIRE database is 10202.04 km2.
+
+2) Carbon Emission/Price vs. the Number of Sensors: We
+calculate the carbon emission based on the carbon emission
+model in (5). Fig. 5(c) shows the result. The amounts of carbon
+emission are 5.82 × 106 ton and 1.17 × 106 ton when 105 and
+106 sensors are deployed, respectively. According to [21], we
+assume per ton of carbon is equal to 20 USD. The carbon
+
+price is shown in Fig. 5(d), which is 116.4 million USD with
+105 sensors and 23.4 million USD with 106 sensors.
+
+In comparison, the annual carbon emission from the 2020
+California wildﬁres can be calculated as 10202.04 × (1.2 ×
+46.6237) × 100 = 5.71 × 107 ton based on (5), where we have
+adopted the average biomass value of the entire California,
+46.6237 Mg/ha. This amounts to a carbon price of 1.14 billion
+USD.
+
+3) Savings vs. the Number of Sensors: The annual saving
+yielded by using our proposed sensor-based system is the
+monetary difference between the 1.14 billion USD cost and
+the carbon price for the proposed method shown in Fig. 5(d)
+plus the sensor costs. For example, assuming the sensor cost of
+100 USD per sensor, the saving is 1.14 × 109 − (116.4 × 106+
+105 × 100) = 1.01 × 109 USD, or 1.01 billion USD, when 105
+sensors are deployed. The savings result is shown in Fig. 5(e)
+for four different sensor costs. As can be seen, the proposed
+sensor-based system can potentially lead to signiﬁcant annual
+savings by detecting wildﬁres early.
+
+C. Further Discussion and Future Directions
+
+The results presented have shown the promise of the pro-
+posed system. Further studies in the following directions can
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+be done to enhance the completeness and generality of the
+proposed system:
+
+• The current study considers an ideal situation where ﬁre
+is contained immediately upon detection of ﬁre by one
+or more sensors. The time and cost associated with the
+follow-up ﬁre extinguishing measures should be taken
+into account to provide a more well-rounded view of the
+total savings achieved by the proposed method.
+
+• The current study considers a simple sensor placement
+model (i.e., uniform distribution). In practice, the terrain
+(land, sea, lake, etc.), population density (urban/suburban
+areas, etc.), and heterogeneous characteristics and vege-
+tation of the land coverage area may be considered for a
+more intelligent and efﬁcient placement of sensors. For
+example, more sensors should be deployed in high-risk,
+high-ﬂammability areas such as forests. This considera-
+tion can be further coupled with an analysis of the critical
+ﬁre time and area beyond which a ﬁre would be difﬁcult
+to control, so as to identify the required number of sensors
+in speciﬁc areas.
+
+• The current study could further take into account different
+causes of ﬁre, especially, natural causes of ﬁres (e.g.,
+lightning) and human-caused ﬁres, which may demand
+different sensor types and data trafﬁc models.
+
+• A proof-of-concept ﬁeld trial can be conducted to verify
+the integration and testing of wildﬁre detection sensors
+and NB-IoT NTNs.
+
+IV. CONCLUSION
+
+In this paper, we have proposed a sensor-based satellite
+IoT system for wildﬁre detection. We quantitatively investi-
+gated the feasibility and effectiveness of the proposed system.
+Speciﬁcally, we ﬁrst proposed a wildﬁre model with multiple
+ignition points and varying wind magnitudes and directions,
+and a method to approximate the ﬁre burning area. We then
+proposed a carbon emission model based on real biomass
+information, as well as conducted a satellite link budget
+analysis. Simulation results based on real environmental data
+of California in 2020 demonstrated that deploying as few as
+one sensor per km2 could reduce the annual carbon emission
+by more than ten times, and deploying our system could yield
+signiﬁcant annual savings of billions of USD due to early ﬁre
+containment. Pointers on further research based on this pilot
+study were outlined.
+
+REFERENCES
+
+[1] C. Yue, P. Ciais, P. Cadule, K. Thonicke, S. Archibald, B. Poulter,
+W. M. Hao, S. Hantson, F. Mouillot, P. Friedlingstein, F. Maignan, and
+N. Viovy, “Modelling the role of ﬁres in the terrestrial carbon balance by
+incorporating SPITFIRE into the global vegetation model ORCHIDEE
+- part 1: Simulating historical global burned area and ﬁre regimes,”
+Geosci. Model Dev., vol. 7, no. 2747–2767, Nov. 2014.
+
+[2] L. Yu
+
+and N. Wang
+
+and X. Meng,
+
+International Conference
+
+ﬁre detection with wireless
+2005
+Networking and Mobile Computing, 2005.
+doi:10.1109/WCNM.2005.1544272
+
+sensor networks,”
+
+“Real-time
+
+forest
+in Proceedings.
+on Wireless Communications,
+[Online]. Available:
+
+[3] L. B. Lentile, Zachary, Holden, A. M. S. Smith, M. J. Falkowski, A. T.
+Hudak, P. Morgan, S. A. Lewis, P. E. Gessler, and N. C. Benson,
+“Remote sensing techniques to assess active ﬁre characteristics and
+post-ﬁre effects,” International Journal of Wildland Fire, vol. 15, no. 3,
+September 2006. [Online].https://doi.org/10.1071/WF05097.
+
+[4] L. Guo and W. Wang and G. Wang and J. Cui, “Research and
+implementation of forest ﬁre early warning system based on UWB
+wireless sensor networks,” in 2010 Second International Conference on
+Communication Systems, Networks and Applications, 2010. [Online].
+Available: doi:10.1109/ICCSNA.2010.5588679
+
+[5] Z. Chaczko and F. Ahmad, “Wireless sensor network based system
+for ﬁre endangered areas,” in Third International Conference on
+Information Technology and Applications (ICITA’05), 2005. [Online].
+Available: doi:10.1109/ICITA.2005.313
+
+[6] A. Ko, N. M. Y. Lee, R. P. S. Sham, C. M. So, and S. C. F.
+Kwok, “Intelligent wireless sensor network for wildﬁre detection,” WIT
+Transactions on Ecology and the Environment, vol. 158, 2012. [Online].
+doi:10.2495/FIVA120121.
+
+[7] F. Zhang, P. Zhao, S. Xu, Y. Wua, X. Yang, and Y. Zhang, “Integrating
+multiple factors to optimize watchtower deployment for wildﬁre detec-
+tion,” Science of the Total Environment, vol. 737, no. 139561, October
+2020. [Online]. https://doi.org/10.1016/j.scitotenv.2020.139561.
+
+[8] W. Ejaz, M. A. Azam, S. Saadat, F. Iqbal, and A. Hanan, “Un-
+manned aerial vehicles enabled IoT platform for disaster man-
+agement,” Energies, vol. 12, no. 2706,
+[Online].
+https://doi.org/10.3390/en12142706.
+
+July 2019.
+
+[9] G. Mei, N. Xu, J. Qin, B. Wang, and P. Qi, “A survey of internet of
+things (IoT) for geohazard prevention: Applications, technologies, and
+challenges,” IEEE Internet of Things Journal, vol. 7, no. 5, pp. 4371–
+4386, 2020.
+
+[10] Inmarsat, MediaTek
+
+Inc.,
+
+Institute
+
+for
+
+Information
+
+“Demonstrating NB-IoT
+and
+set-up,
+89E,
+RP-201702,
+https://www.3gpp.org/ftp/tsg ran/TSG RAN/TSGR 89e/Docs
+
+satellite
+3GPP
+[Online].
+
+for
+results,”
+2020.
+
+parameters
+Rep.
+
+viability
+key
+
+Tech.
+
+Industry,
+uselive
+trial
+TSG RAN-
+Available:
+
+[11] V. K. Arora and G. J. Boer, “Fire as an interactive component of dynamic
+vegetation models,” Journal of Geophysical Research, vol. 110, Nov.
+2005.
+
+[12] M. Cairns, S. Brown, E. Helmer, and G. Baumgardner, “Root biomass
+allocation in the world’s upland forests.” Oecologia, vol. 111, no. 1, pp.
+1–11, Jun 1997.
+
+[13] G. Charbit, A. Medles, P. Jose, D. Lin, X. Zhu, and I.-K. Fu, “Satellite
+and cellular networks integration – a system overview,” MediaTek Inc.
+[14] Solutions for NR to support non-terrestrial networks (NTN), 3GPP TS
+
+38.821 version 16.1.0 Release 16, 2021.
+
+[15] Physical
+
+layer procedures (FDD), 3GPP TS 25.214 version 15.0.0
+
+Release 15, 2018.
+[16] T-Mobile USA,
+
+developer
+“Narrowband
+protocols guide,” T-Mobile, Tech. Rep., 2019. [Online]. Available:
+https://www.t-mobile.com/content/dam/tfb/pdf/IoT-Solution-Developer-Protocols-Guide.pdf?icid=TFB TMO P 19IOT E3UOLES40BRO6VPW19260
+
+solution
+
+Inc.,
+
+IoT
+
+[17] National
+National
+https://www.nationalforests.org/blog/seven-largest-national-forests
+
+Foundation.
+2021.
+
+Forest
+Forests”,
+
+[Online].
+
+”Seven
+
+Largest
+Available:
+
+Inc.
+[18] Insurance
+Statistics:
+[Online].
+https://www.iii.org/fact-statistic/facts-statistics-wildﬁres
+Store.
+
+Information
+Wildﬁres”,
+
+Institute,
+2021.
+
+[19] Climate
+
+”ERA5-Land
+
+Data
+
+”Facts
+
++
+Available:
+
+hourly
+
+data
+Available:
+
+from
+https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview
+
+[Online].
+
+present”.
+
+1981
+
+to
+
+[21] P. Mark
+
+[20] California Department of Forestry and Fire Protection. ”Incidents
+Overview”, 2021. [Online]. Available: https://www.ﬁre.ca.gov/incidents/
+state
+Century
+[Online]. Available:
+
+“Proposed
+Commission
+Sacramento, California, USA.
+
+of
+Economy,
+https://cotce.ca.gov/documents/correspondence/staff and commissioners/documents/Carbon%20tax.pdf
+
+carbon
+on
+
+california,”
+
+of
+21st
+
+tax
+the
+
+Ibele,
+
+the
+
+

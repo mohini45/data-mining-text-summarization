@@ -1,0 +1,918 @@
+Analyzing Multispectral Satellite Imagery of South American
+Wildﬁres Using Deep Learning
+
+Christopher Sun
+
+March 2022
+
+Abstract
+
+Since severe droughts are occurring more frequently and lengthening the dry season in the Amazon
+Rainforest, it is important to detect wildﬁres promptly and forecast possible spread for effective sup-
+pression response. Though computer vision researchers have applied algorithms to automatically detect
+wildﬁres, current models are computationally expensive and not versatile enough for the low technol-
+ogy conditions of South American wildﬁre hotspots. This comprehensive deep learning study ﬁrst
+trains a Fully Convolutional Neural Network with skip connections on multispectral Landsat 8 images
+of Ecuador and the Galapagos. The model uses Green and Short-wave Infrared (SWIR) bands as in-
+puts to predict each image’s corresponding pixel-level binary ﬁre mask. This model achieves a 0.962
+validation F2 score and a 0.932 F2 score on test data from Guyana and Suriname. Afterward, image
+segmentation is conducted on the Cirrus band using K-Means Clustering to simplify continuous pixel
+values into three discrete classes representing differing degrees of cirrus cloud contamination. Two ad-
+ditional Convolutional Neural Networks are trained to classify the presence of a wildﬁre using these
+segmented cirrus images. The ”experimental” model trained on the segmented inputs and SWIR data
+achieves a binary accuracy that is 2.306% higher than that of the ”benchmark model” that is trained
+only on SWIR data. The difference in performance has a p-value of 0.00968. This proof of concept
+reveals that feature simpliﬁcation can improve the performance of wildﬁre detection models. Overall,
+the software built in this study is useful for early and accurate detection of wildﬁres in South America.
+
+2
+2
+0
+2
+
+r
+p
+A
+3
+
+]
+
+G
+L
+.
+s
+c
+[
+
+2
+v
+1
+7
+6
+9
+0
+.
+1
+0
+2
+2
+:
+v
+i
+X
+r
+a
+
+1
+
+ 
+ 
+ 
+ 
+ 
+ 
+3
+3
+
+3
+3
+
+4
+4
+5
+5
+6
+6
+7
+7
+7
+7
+
+8
+8
+8
+9
+9
+12
+12
+12
+13
+13
+
+14
+14
+14
+14
+15
+
+15
+
+Contents
+
+1 Introduction
+
+1.1 Research Outline .
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+2 Materials and Data
+
+2.1 Landsat 8 Imagery .
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+3 Methods
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.1 Preprocessing .
+3.2 Fully Convolutional Neural Network . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.2.1 Neural Network Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+3.2.2 Loss and Metric Functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+3.2.3 Training .
+.
+.
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.3 Cirrus Band Analysis .
+.
+3.3.1 Cirrus Data Preparation .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.3.2 K-Means Clustering for Unsupervised Cirrus Image Segmentation . . . . . . . . . . . . . . .
+.
+3.3.3 Cirrus-to-Wildﬁre CNN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+.
+.
+
+.
+.
+
+.
+.
+
+.
+.
+
+.
+
+.
+
+4 Results
+
+.
+
+.
+
+.
+
+.
+
+Performance Visualizations
+
+4.1 Fully Convolutional Neural Network . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+4.1.1 Learning Curves
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+4.1.2 Metrics and Confusion Matrix . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.1.3
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.1.4 Model Testing Scenarios . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+4.2.1 Unsupervised Image Segmentation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.2.2 Learning Curves and Metrics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.2.3 Two Proportion Z-Test
+
+4.2 Cirrus Band Analysis .
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+5 Discussion
+
+5.1 Deep Learning Tasks .
+.
+
+.
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+.
+5.2 Relationship Between Cirrus Clouds and Wildﬁre Acreage . . . . . . . . . . . . . . . . . . . . . . .
+
+5.1.1
+5.1.2 Cirrus-to-Wildﬁre CNN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+FCN .
+
+.
+.
+
+.
+.
+
+.
+.
+
+.
+.
+
+.
+.
+
+.
+
+.
+
+.
+
+.
+
+6 Conclusions
+
+2
+
+1 Introduction
+
+In places like the Amazon Rainforest, where severe droughts are occurring more frequently and lengthening the dry
+season, interconnected ecosystems are threatened by more widespread occurrences of wildﬁres (Arag˜ao et al. 2018)
+It is not only important to respond to wildﬁres promptly using well-informed allocation of rescue resources
+[1].
+to minimize waste, but also to forecast active wildﬁres before they become inextinguishable. Progress towards this
+task has been made in the ﬁeld of computer vision, with researchers applying machine learning algorithms on large
+databases to automatically detect wildﬁres. Matson and Holben (1987) used remote sensing techniques like Dozier’s
+method to extract pixel-level information from NOAA data of regions in Brazil [8]. More recently, Schroeder et al.
+(2016) used the Near-Infrared and Short-Wave Infrared bands from the Landsat 8 satellite to classify ﬁre-affected
+pixels. The researchers achieved a very low rate of false positives [13]. Khryashchev and Larionov (2020) used RGB
+images and data augmentation for wildﬁre detection [5]. Similarly, Sousa et al. (2020) employed transfer learning on
+an augmented data set of ﬁre events in Portugal [14]. Pereira et al. (2021) introduced three deep convolutional neural
+network architectures for active wildﬁre detection, using these models to predict the overhead pixel-level labels of a
+256 x 256 pixel patch of land [11].
+
+1.1 Research Outline
+
+The following sections of this work detail a comprehensive deep learning study conducted on multispectral geospatial
+data of Ecuador and the Galapagos from the Landsat 8 satellite [7]. After preprocessing of the data, a fully convolu-
+tional neural network (FCN) with skip connections is trained on 3-channel image inputs to predict the corresponding
+ﬁre mask. The paper then takes a deeper dive into one speciﬁc spectral band, the Cirrus Cloud band, describing an
+unsupervised learning approach to image segmentation. After the pixels of each cirrus image are segmented into
+discrete classes of cirrus contamination, two more convolutional neural networks are trained to investigate the effect
+of feature simpliﬁcation on model performance. The results reveal that feature simpliﬁcation can not only improve
+model performance but also be useful when computational resources are scarce. Finally, data analysis on cirrus cloud
+imagery hints at an underlying correlation between cirrus contamination and occurrences of wildﬁres.
+
+Figure 1: Experimental Design
+
+2 Materials and Data
+
+2.1 Landsat 8 Imagery
+
+The data used for this research was a subset of a large publicly available database of Landsat 8 satellite images [10]
+processed by Pereira et al. (2021) [11]. Of the entire South American continent, aerial images of Ecuador and the
+
+3
+
+Galapagos were selected to train the model, and images of Guyana and Suriname were used as test data for a ﬁnal
+model evaluation. The Landsat 8 satellite uses a Worldwide Reference System (WRS) denoted by path-row pairs.
+Each path-row pair covers approximately a 115 x 112 mile area (Knight and Knight 2014), with some overlap between
+pairs [7]. The regions of Ecuador and the Galapagos from which the data for this research was acquired is shown
+below, divided according to the WRS.
+
+Figure 2: Landsat WRS. The data used for the models in this research was acquired from areas shaded in blue.
+
+The data consisted of 14,823 images containing at least one region with an active ﬁre, and 11,848 containing no ﬁres
+in any pixels. The former set of images will be referred to as the “ﬁre” images and the latter as the “non-ﬁre” images.
+Each georeferenced TIFF had dimensions of 128 x 128 pixels x 10 spectral bands.1 Each image was paired with
+its corresponding pixel-level label called a mask. The masks were composed of 0s and 1s, where a “0” pixel value
+indicates the absence of ﬁre and a “1” pixel value indicates the presence of ﬁre in that region. These 128 x 128 pixel
+masks were either manually annotated or generated according to the conditions described in Schroeder et al. (2016)
+[13].
+
+Figure 3: An example of one 10-band image in the data set. The three RGB bands are visualized as one band.
+
+3 Methods
+
+3.1 Preprocessing
+
+Some 10-band images had a large number of pixels that were 0, the reasons for which were unknown.2 After elimina-
+tion of these images, the data set was narrowed down to 14,274 “ﬁre” images. “Non-ﬁre” images were not included as
+
+1Though Landsat 8 Operational Land Imager (OLI) and Thermal Infrared Sensor (TIRS) images have 11 bands, the Panchromatic band with 15
+
+meters resolution was excluded at the discretion of the researchers who processed the data.
+
+2This might have been due to the fact that they were acquired at the borders of WRS path-row grids.
+
+4
+
+data for the wildﬁre detection model, for reasons described in Section 3.2.3.
+
+Class Imbalance The data set contained extreme class imbalance, as the masks of the “ﬁre” images consisted of
+overwhelmingly more “non-ﬁre” pixels than “ﬁre” pixels. The median number of ﬁre pixels in each mask was 2
+pixels3. Using Landsat 8’s resolution of 30 meter per pixel, this equates to a 3,840 x 3,840 squared meter (3644 acre)
+patch of land only having 1900 square meters (0.445 acres) of active wildﬁre, on average.
+
+3.2 Fully Convolutional Neural Network
+
+3.2.1 Neural Network Design
+
+Given the images and masks in the data set, the ultimate modeling task was to extract features from each image to
+predict the corresponding mask. Accomplishing this task would not require all ten bands of data, as demonstrated
+by Pereira et al. (2021), who used only three bands and generated good results [11]. Consequently, the Landsat-8
+bands selected as inputs to predict the wildﬁre masks were the Green and Short-wave Infrared bands. The deep learn-
+ing model assembled for this task was based off of the U-Net, a deep Fully Convolutional Network (FCN) used for
+biomedical image segmentation tasks (Ronneberger et al. 2015) [12]. Instead of the four downsampling and upsam-
+pling blocks in the U-Net, this model was a shallower model consisting of only three blocks, with less ﬁlters as well.
+As a result, the model had only 2,138,785 trainable parameters.
+
+During the downsampling phase, 2D convolution layers enlarge the number of channels, while maximum pooling
+reduces dimensionality along the ﬁrst and second axes of the input. While the input shape is 128 x 128 x 3, the bot-
+tleneck layer has dimensions of 16 x 16 x 128. During the upsampling phase, transposed convolution (deconvolution)
+layers reduce the number of channels and increase dimensionality along the ﬁrst and second axes. In essence, the
+image is encoded by the model, and after passing through a bottleneck phase, is decoded back towards the shape of the
+input image. Skip connections between the ﬁrst and seventh, second and sixth, and third and ﬁfth blocks bypass inte-
+rior layers of the model, providing feature information to later layers that might be lost from downsampling (Drozdzal
+et al. 2016) [4]. A ﬁnal 1 x 1 convolution layer generates the 128 x 128 x 1 output mask.
+
+Figure 4: The U-Net-inspired Fully Convolutional Model built for the mask prediction task.
+
+3Each mask contained 16,384 pixels
+
+5
+
+3.2.2 Loss and Metric Functions
+
+Due to the class imbalance in the image masks, the model required a weighted loss function. The standard binary
+cross-entropy loss function used for binary classiﬁcation was adjusted by a factor of pc, called the class weight. This
+class weight was computed using:
+
+pc =
+
+Total number of pixels that equal 0
+Total number of pixels that equal 1
+
+=
+
+Total number of pixels in dataset
+Total number of pixels that equal 1
+
+− 1.
+
+Accordingly, the loss function was deﬁned as:
+
+L(θ ) =
+
+1
+m
+
+·
+
+m
+∑
+i=1
+
+k
+∑
+n=1
+
+(cid:104)
+pc · y(n) · log (h(x(n))) + (1 − y(n)) · log (1 − h(x(n)))
+
+(cid:105)i
+
+,
+
+where k is the number of pixels in each ﬂattened mask, y(n) is the ground truth classiﬁcation of the nth pixel, h(x(n))
+is the prediction value of the nth pixel, and a summation is applied over every pixel of the ith image for a total of m
+images in each mini-batch.
+
+The F-beta score with a beta value of 2 was used as a performance metric for the FCN.4 Let precision P = t p
+t p+ f p
+and let recall R = t p
+t p+ f n , where t p (true positives) is the number of pixels containing wildﬁres that are correctly classi-
+ﬁed by the model, f p (false positives) is the number of pixels without wildﬁres but classiﬁed otherwise by the model,
+and f n (false negatives) is the number of pixels containing wildﬁres but classiﬁed otherwise by the model. The F-beta
+score is then:
+
+Fβ =
+
+1 + β 2
+β 2
+P + 1
+R
+
+=
+
+(1 + β 2)PR
+β 2P + R
+
+.
+
+The F2 is a weighted harmonic mean of the precision and recall, with more weight given to the recall. Theoretically,
+maximizing the recall should be prioritized over maximizing the precision, since in scenarios where wildﬁre prediction
+software will be used, it is more important to minimize false negatives than false positives (Arana-Pulido et al. 2018)
+[2]. When a region is mistakenly assessed as wildﬁre-free, ﬁre-extinguishing resources will not be allocated to that
+region, meaning the ﬁre could expand while rescuers are not aware. Hence, the F2 score, given below, was selected as
+a performance metric for the FCN.5
+
+Substituting P and R in terms of their components,
+
+F2 =
+
+5PR
+4P + R
+
+.
+
+F2 =
+
+t p
+t p + 0.2 f p + 0.8 f n
+
+.
+
+3.2.3 Training
+
+The FCN was optimized using Adam optimization (Kingma and Ba 2014) [6] with an exponentially decaying learning
+rate. The learning rate α as a function of the epoch of training, t, was
+
+α(t) = α0 e−0.1t ,
+
+where α0 was 1e-3 and 0.1 was a hyperparameter. The ReLU activation function was used throughout the model,
+with the exception of the last layer which used the sigmoid function. Batch Normalization on the channels axis had
+a regularizing effect on the model (Dauphin and Cubuk 2020) [3], as no other regularization techniques had to be
+applied. The model was trained for 100 epochs with a mini-batch size of 32 images.
+
+Only the 14,247 “ﬁre” images were used as data for training the neural network; the 11,848 “non-ﬁre” images were
+excluded. As explained in Section 3.1, very few pixels on average contained ﬁres. Hence, in order for the model to
+
+4Binary accuracy was not a reasonable metric since image masks contained overwhelmingly more 0s than 1s. If the model learned nothing and
+
+predicted a mask of pure 0s for every images, its binary accuracy would be extremely high, but this would be a misinformed metric.
+
+5As the F1 score is more widely used, the F1 score will also be provided in Section 4.1.2 to allow for comparison with other published models.
+
+6
+
+achieve a high F2 score, it must be a very good discriminator between the classiﬁcation of each pixel. It follows that
+if the model can already discern exactly which few pixels (out of 16,384) have ﬁres, there is little additional beneﬁt
+from adding more data images that have masks of purely 0’s. A 85-15% train-validation split created a train set with
+12,132 images and a validation set with 2,142 images.
+
+3.3 Cirrus Band Analysis
+
+Environmental research has shown that there are subtleties in atmospheric responses to wildﬁres that provide infor-
+mation about the sources of the ﬁres themselves. One such example, as highlighted by Veselovskii et al. (2021) [17],
+is the association of wildﬁre smoke with cirrus clouds. The authors found that smoke properties such as surface area,
+volume, and concentration could be extracted simultaneously with cirrus properties, using multispectral LiDAR ob-
+servations.
+
+The ideas of the authors motivated another avenue of experimentation: extracting features from the cirrus bands
+for the binary classiﬁcation of the presence of a wildﬁre, as a proof of concept for feature simpliﬁcation.
+
+3.3.1 Cirrus Data Preparation
+
+Before training a neural network, the cirrus bands needed to be preprocessed. Since not all images in the data set
+contained cirrus cloud contamination (what was desirable for the analysis), images that contained cirrus clouds ﬁrst
+needed to be selected. However, there were no labels provided for this task, so the criteria for determining whether an
+image contained cirrus clouds had to be experimentally decided. Visual observation of the cirrus bands made it clear
+that images with cirrus clouds had a much larger pixel value range than images without cirrus clouds. The minimum
+threshold for the range of pixel values was set to be 500.6 Only 5,420 of the 26,671 original images satisﬁed this
+condition, with 2,152 “ﬁre” images and 3,268 “non-ﬁre” images.
+
+3.3.2 K-Means Clustering for Unsupervised Cirrus Image Segmentation
+
+Image segmentation was conducted to simplify the features of the cirrus clouds. A 1282 x 3 (16,384 x 3) dimensional
+array, consisting of each pixel value of an image along with the pixel’s coordinates on the image (ranging from 0 to
+128), was fed into the K-Means Clustering algorithm with a K-value of 3.
+
+Clustering Hypothesis
+It was hypothesized that if a K-value of 3 was used, the clustering algorithm would identify
+spatial regions in the image corresponding to degrees of cloud contamination: “dense” cirrus, “scattered” cirrus, and
+“no” cirrus.
+
+The point of simplifying the features of the image from continuous pixel values to discrete three-class values was
+to allow a deep learning model to learn the associations between high-level cirrus cloud patterns and the presence of
+wildﬁres.7 In rural regions of the Amazon Rainforest where computational power is a luxury, it is crucial to minimize
+computational expense while maximizing the accuracy of computer vision models, and image segmentation provided
+a proof of concept for this task.
+
+3.3.3 Cirrus-to-Wildﬁre CNN
+
+To test the hypothesis that feature simpliﬁcation could provide added beneﬁts to wildﬁre detection algorithms, two
+convolutional neural networks were constructed: each with the same architecture but trained on different data features.
+
+• Benchmark Model (Only SWIR Data) The benchmark model was trained only on the two Short-wave Infrared
+
+bands.
+
+• Experimental Model (SWIR and Cirrus Data) The experimental model was trained on the segmented Cirrus
+bands stacked depthwise with the two Short-wave Infrared bands. An example of an input image can be seen in
+Section 4.2.1.
+
+6In most images, raw pixel values hovered around 5,000.
+7Section 5.2 also describes a relationship between cirrus pixels and ﬁre pixels using these segmented cirrus images.
+
+7
+
+Model Architecture Both of the above models used the same architecture, hyperparameters, and random seed. The
+architecture had 1,824,937 trainable parameters, with most of the parameters concentrated in the ﬁnal two convolution
+layers and the ﬁrst fully connected layer. For this reason, L2 Regularization with a lamdba value of 3e-3 was used
+in the ﬁnal two convolution layers, and dropout regularization with a dropout probability of 0.3 was used before
+ﬂattening the outputs of the last convolution. The fully connected layers were also regularized with dropout, with
+dropout probabilities decreasing per layer from 0.3 to 0.1.
+
+Figure 5: The convolutional model built for the binary classiﬁcation task.
+
+Hypotheses The null hypothesis was that the validation accuracy of the benchmark model would equal the validation
+accuracy of the experimental model. The alternative hypothesis was that the validation accuracy of the experimental
+model would exceed that of the benchmark model.
+
+4 Results
+
+4.1 Fully Convolutional Neural Network
+
+4.1.1 Learning Curves
+
+Figure 6: The train and validation performance of the FCN over 100 epochs.
+
+8
+
+The FCN quickly converged on the train set while the validation loss still experienced some noise until around epoch
+50. After epoch 50, the validation loss seems to subtly increase, implying slight overﬁtting, but interestingly this is not
+reﬂected in the validation F1 and F2 Scores.
+
+4.1.2 Metrics and Confusion Matrix
+
+Figure 7: The confusion matrix of the FCN shows the proportion of real ﬁres identiﬁed correctly (recall)
+and the proportion of predicted ﬁres identiﬁed correctly (precision).
+
+The FCN achieved a 0.962 F2 score and a 0.928 F1 score on the validation data set, corresponding to a Precision of
+0.878 and a Recall of 0.989. This means that the model very rarely fails to identity an existing ﬁre, but occasionally
+may be too sensitive and ﬂag non-ﬁre pixels as ﬁre pixels. Visualizations of accurate predictions as well as predictions
+with false positives are shown below.
+
+4.1.3 Performance Visualizations
+
+The following ﬁgure shows some examples of the models’ predictions when there are a small number of pixels in the
+mask that contain an active ﬁre. The left column depicts the input data, the middle column depicts the ground truth
+
+9
+
+mask, and the right column depicts the mask predicted by the FCN.
+
+Figure 8: Mask predictions when the number of ground truth ﬁres is small. The ”ﬁre” pixels are circled.
+represent pixels with active wildﬁres.
+
+10
+
+The following ﬁgure shows some examples of the models’ predictions when there are a large number of pixels in the
+mask that contain an active ﬁre. The third row shows that the model can fail to identify ﬁre-absent pixels when they
+are surrounded by ﬁre-containing pixels. This over-labeling of ﬁres was, however, not observed when the mask had a
+very few number of ﬁre pixels.
+
+11
+
+Figure 9: Mask predictions when the number of ground truth ﬁres is large. False positives are more frequent.
+
+4.1.4 Model Testing Scenarios
+
+Geographical Test The FCN was tested on 2,000 previously-unseen images from Guyana and Suriname. On this
+test data, the model achieved an F1 score of 0.875 and an F2 score of 0.934. These results conﬁrm that the FCN can
+generalize well to data gathered from geographical regions that differ in topography and climate.
+
+Non-Fire Images Test The FCN was also tested on 2,000 “non-ﬁre” images. Of all the pixels in the 2,000 predicted
+In other words, the model was unable to completely
+masks, only 13 pixels were predicted to contain wildﬁres.
+eliminate false negatives, but kept the rate of false positives extremely low, at 3.967e-5%.
+
+4.2 Cirrus Band Analysis
+
+4.2.1 Unsupervised Image Segmentation
+
+Figure 10: Cirrus band segmented by level of cirrus cloud contamination.
+
+Visual observation supported the hypothesis that the K-Means clustering algorithm would ﬁnd centroid values that
+account for the differing degrees of cirrus cloud contamination in the cirrus band.
+
+Model Inputs
+
+Figure 11: Inputs for the Experimental CNN. The Benchmark CNN did not have segmented cirrus images as inputs.
+
+Though cirrus clouds are sometimes visible in the SWIR bands, adding the segmented cirrus band brought out the
+features of the clouds so that after min-max normalization was applied, the segmented cirrus channel would have more
+weight.
+
+12
+
+4.2.2 Learning Curves and Metrics
+
+Figure 12: The train and validation performance of the Cirrus-to-Wildﬁre CNN over 250 epochs.
+
+The benchmark model (introduced in Section 3.3.3) with the 2-channel SWIR inputs achieved a validation binary
+accuracy of 93.266%. The experimental model trained on 3-channel inputs consisting of the segmented cirrus band in
+addition to the two SWIR bands achieved a 95.572% validation binary accuracy.8 The random seed and all hyperpa-
+rameters described in Section 3.3.3 were held equal between the models.
+
+The difference between the binary accuracies was 2.306%. The additional beneﬁt of including the segmented cir-
+rus bands can also be seen in the learning curves above. While the benchmark model had a high degree of noise, the
+experimental model had much smoother training. Though the validation accuracy of the benchmark model reached
+90% around 25 epochs earlier than the validation accuracy of the experimental model, the latter maintained the plateau
+for around 165 more epochs while the former ﬂuctuated unpredictably.
+
+Since the experimental model proved to be more computationally stable while generalizing better on validation data,
+there was deﬁnitely a measurable increase in model performance when the segmented cirrus bands were included to
+forecast the presence of wildﬁres.
+
+4.2.3 Two Proportion Z-Test
+
+A one-tailed two proportion z-test was conducted to assess the statistical signiﬁcance of the observed difference in
+model performance between the benchmark and experimental models. Shown below are the calculations that con-
+ﬁrmed a p-value of 0.00968. The p-value provides strong evidence that there including the segmented cirrus band
+
+8The train set binary accuracy reached 99.8% for both models.
+
+13
+
+increases the accuracy of the Cirrus-to-Wildﬁre CNN. The null hypothesis was therefore rejected.
+
+H0 : pe − pb = 0
+HA : pe − pb > 0
+pe = 0.95572
+pb = 0.93266
+
+ppooled =
+
+z =
+
+(cid:113)
+
+pe + pb
+2
+
+=
+
+pene + pbnb
+ne + nb
+pe − pb
+ppooled(1 − ppooled)( 2
+n )
+
+= 2.3387
+
+= 0.94419
+
+p = normalCd f (z, ∞, 0, 1) = 0.00968
+
+5 Discussion
+
+5.1 Deep Learning Tasks
+
+5.1.1 FCN
+
+The results of the FCN show that despite the class imbalance inherent to the data set, the model is still a highly ef-
+fective discriminator between ﬁre and non-ﬁre pixels. In fact, of all pixels in the validation data set containing ﬁres,
+the model had a false negative rate of 1.46%. This is an important trait when software is used for real-time wildﬁre
+detection in South America, since identifying all regions with ground truth ﬁres (i.e. maximizing recall) is the ﬁrst
+priority.9
+
+A potential use case for the model involves is Land Cover Change Detection. Satellites or aerial vehicles can pe-
+riodically conduct forward propagation, accessing the predicted probability that each pixel of land contains a wildﬁre
+at that instant. If the satellite or aerial vehicle takes snapshots of particular regions of land hourly, weekly, etc., then
+the ﬂuctuations in the probabilities of each pixel could be analyzed using a time-series model to enhance the wildﬁre
+prediction task.
+
+Comparison of FCN with Other Models The 34,525,121-parameter neural network designed by Pereira et al.
+(2021) was referred to by the authors as the “U-Net,” and their 2,161,649-parameter model was referred to as the
+“U-Net-Light” [11]. The performance of these models is compared with the performance of this research’s FCN in
+the table below.
+
+Model
+“U-Net”
+“U-Net-Light”
+FCN
+
+No. of Parameters
+34,525,121
+2,161,649
+2,138,785
+
+Precision Recall
+0.888
+0.861
+0.985
+
+0.898
+0.908
+0.878
+
+F1
+0.893
+0.884
+0.928
+
+F2
+0.890
+0.870
+0.962
+
+The architecture of the FCN required and less regularization than the “U-Net” and “U-Net-Light,” which used dropout
+layers between convolutions. This corroborates the ﬁndings of Sun et al. (2021), who demonstrated that using a
+simpler architecture without regularization results in similar performance as using a more complex architecture with
+heavy regularization [15].
+
+5.1.2 Cirrus-to-Wildﬁre CNN
+
+The success of the Experimental Cirrus-to-Wildﬁre CNN shows that feature simpliﬁcation is a promising way to detect
+active wildﬁres. In other words, it has already been established (by other researchers and this paper) that not all ten
+Landsat bands have to be used to detect wildﬁres; the next step is to ﬁnd even more optimal simpliﬁcations of the
+input data. For example, Principal Component Analysis (PCA) can compress the dimensionality of inputs, after which
+clustering the images can allow associations between bands and ﬁre pixels to be found. In this manner, less data will
+be needed to train a more versatile model.
+
+9As mentioned in Section 3.2.2, false negatives are more dangerous than false positives, which can be thought of as false alarms.
+
+14
+
+5.2 Relationship Between Cirrus Clouds and Wildﬁre Acreage
+
+Recall that the pixel values of the cirrus bands were segmented into three cirrus contamination categories: dense,
+scattered, and none. These segmented images were analyzed in trying to ﬁnd a correlation between the number of
+pixels in each category and the number of wildﬁre pixels in the corresponding mask. Each scatter plot below contains
+5,420 data points, each data point representing one image in the data set for the Cirrus-to-Wildﬁre CNN.
+
+Figure 13: Scatter plots of the number of ﬁre pixels against the number of pixels in each cirrus
+contamination class. Linear regression ﬁts are included to give a sense of the data’s form and direction.
+
+From the ﬁgures above, it appears that the plot of Fire Pixels vs. Dense Cirrus Pixels is similar to a y-axis reﬂection
+of the plot of Fire Pixels vs. No Cirrus Pixels. Furthermore, it appears that the plot of Fire Pixels vs. Scattered Cirrus
+Pixels is nearly symmetric. Notice that the curves formed by the boundary data points on the ﬁgures take on distinct
+shapes. The images with the largest number of ﬁre pixels (points near the top of the graphs) appear on different regions
+from graph to graph: Speciﬁcally, these images have:
+
+• More “Dense Cirrus” pixels than the mean number of “Dense Cirrus” pixels across all images.
+• Similar numbers of “Scattered Cirrus” pixels as the mean number of “Scattered Cirrus” pixels across all images.
+• Less “No Cirrus” pixels than the mean number of “No Cirrus” pixels across all images.
+
+These ﬁndings reveal that there might be an underlying connection between a region’s degree of cirrus contamination
+and the probability of containing an active wildﬁre in that region, supporting Veselovskii et al. [17].
+
+6 Conclusions
+
+The computer vision models designed in this study are useful for Land Cover Change Detection, which involves
+monitoring wildﬁre hot spots periodically and conducting time-series analyses of pixel-wise probabilities to predict
+wildﬁres in advance. An F2 score of 0.962 and a high degree of generalizability prove the versatility of the fully
+convolutional model.
+
+Limitations Limited computational power, which necessitated the reduction of the data set size, was one constraint
+faced throughout the course of this research. While other researchers have conducted active wildﬁre detection on data
+sets with more than one hundred thousand images, this data set only contained 14,274 images. However, excellent
+results on more than 6,000 validation and test images compensate for this data shortage.
+
+Need For Further Research Further research should investigate whether the proposed relationship between the
+degree of cirrus cloud contamination correlates with the presence of an active wildﬁre. Perhaps, a larger meta-data set
+can be created from Landsat 8 imagery to analyze this relationship using more variables. Further research can also
+apply feature simpliﬁcation to the coastal aerosol band in order to explore more optimal simpliﬁcations of the satellite
+imagery.
+
+15
+
+Acknowledgement
+
+I would like to thank Mr. Lordan for his time and feedback regarding the research in this paper.
+
+References
+
+[1] Arag˜ao, L. E., Anderson, L. O., Fonseca, M. G., Rosan, T. M., Vedovato, L. B., Wagner, F. H., ... & Saatchi,
+
+S. (2018). 21st Century drought-related ﬁres counteract the decline of Amazon deforestation carbon
+emissions. Nature communications, 9(1), 1-12.
+
+[2] Arana-Pulido, V., Cabrera-Almeida, F., Perez-Mato, J., Dorta-Naranjo, B. P., Hernandez-Rodriguez, S., &
+
+Jimenez-Yguacel, E. (2018). Challenges of an Autonomous Wildﬁre Geolocation System Based on
+Synthetic Vision Technology. Sensors, 18(11), 3631.
+
+[3] Dauphin, Y., & Cubuk, E. D. (2020, September). Deconstructing the Regularization of BatchNorm. In
+
+International Conference on Learning Representations.
+
+[4] Drozdzal, M., Vorontsov, E., Chartrand, G., Kadoury, S., & Pal, C. (2016). The importance of skip connections
+
+applications in biomedical image segmentation. In Deep learning and data labeling for medical applications
+(pp. 179-187). Springer, Cham.
+
+[5] Khryashchev, V., & Larionov, R. (2020, March). Wildﬁre Segmentation on Satellite Images using Deep Learning.
+In 2020 Moscow Workshop on Electronic and Networking Technologies (MWENT) (pp. 1-5). IEEE.
+
+[6] Kingma, D. P., & Ba, J. (2014). Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980.
+
+[7] Knight, E. J., & Knight, G. (2014). Landsat-8 operational land imager design, characterization and performance.
+
+Remote sensing, 6(11), 10286-10305.
+
+[8] Matson, M., & Holben, B. (1987). Satellite detection of tropical burning in Brazil. International Journal of Remote
+
+Sensing, 8(3), 509-516.
+
+[9] Patro, S., & Sahu, K. K. (2015). Normalization: A preprocessing stage. arXiv preprint arXiv:1503.06462.
+
+[10] Pereira, G. H. D. A., Fusioka, A.M., Nassu, B. T., & Minneto, R. (2020). A Large-Scale Dataset for Active Fire
+
+Detection/Segmentation (Landsat-8). IEEE Dataport. dx.doi.org/10.21227/t9gn-y009
+
+[11] Pereira, G. H. D. A., Fusioka, A. M., Nassu, B. T., & Minetto, R. (2021). Active Fire Detection in Landsat-8
+Imagery: a Large-Scale Dataset and a Deep-Learning Study. arXiv preprint arXiv:2101.03409.
+
+[12] Ronneberger, O., Fischer, P., & Brox, T. (2015, October). U-net: Convolutional networks for biomedical image
+
+segmentation. In International Conference on Medical image computing and computer-assisted
+intervention (pp. 234-241). Springer, Cham.
+
+[13] Schroeder, W., Oliva, P., Giglio, L., Quayle, B., Lorenz, E., & Morelli, F. (2016). Active ﬁre detection using
+
+Landsat-8/OLI data. Remote sensing of environment, 185, 210-220.
+
+[14] Sousa, M. J., Moutinho, A., & Almeida, M. (2020). Wildﬁre detection using transfer learning on augmented
+
+datasets. Expert Systems with Applications, 142, 112975.
+
+[15] Sun, C., Sharma, J., & Maiti, M. (2021). Investigating the Relationship Between Dropout Regularization and
+
+Model Complexity in Neural Networks. arXiv preprint arXiv:2108.06628.
+
+[16] Van Gansbeke, W., Vandenhende, S., Georgoulis, S., & Van Gool, L. (2021). Unsupervised semantic
+segmentation by contrasting object mask proposals. arXiv preprint arXiv:2102.06191.
+
+[17] Veselovskii, I., Hu, Q., Ansmann, A., Goloub, P., Podvin, T., & Korenskiy, M. (2021). Fluorescence lidar
+
+observations of wildﬁre smoke inside cirrus: A contribution to smoke-cirrus–interaction research.
+Atmospheric Chemistry and Physics Discussions, 1-29.
+
+16
+
+
